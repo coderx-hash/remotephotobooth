@@ -12,127 +12,148 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; }
         body { 
-            background: #13141b; 
+            background: #111; 
             color: #fff; 
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            justify-content: flex-start; 
             height: 100vh; 
             padding: 20px;
-            transition: background-color 0.1s ease;
+            overflow: hidden;
         }
 
-        .header { text-align: center; margin-bottom: 20px; width: 100%; padding-top: 10px; border-bottom: 2px solid #333; padding-bottom: 15px;}
-        .header h1 { font-size: 1.5rem; color: #ffa500; font-weight: 900; text-transform: uppercase; letter-spacing: 2px;}
-        #status { font-size: 0.8rem; margin-top: 5px; font-weight: 700; color: #aaa; background: #222; display: inline-block; padding: 5px 15px; border-radius: 20px;}
+        /* HEADER STATUS */
+        .header { text-align: center; margin-bottom: 25px; width: 100%; border-bottom: 2px solid #333; padding-bottom: 15px;}
+        .header h1 { font-size: 1.5rem; color: #ffa500; font-weight: 900; letter-spacing: 2px;}
+        #status { font-size: 0.85rem; margin-top: 8px; font-weight: 900; color: #aaa; background: #222; display: inline-block; padding: 6px 15px; border-radius: 20px; text-transform: uppercase; box-shadow: 0 4px 10px rgba(0,0,0,0.5);}
 
-        .grid-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
-            width: 100%;
-            max-width: 400px;
-            flex-grow: 1;
-            padding-bottom: 20px;
+        /* BUTTON CONTAINER */
+        .container { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 18px; 
+            width: 100%; 
+            max-width: 400px; 
+            flex-grow: 1; 
         }
 
+        /* DEFAULT BUTTON STYLES */
         button { 
             width: 100%; 
-            height: 100%;
-            min-height: 80px;
-            font-size: 1.2rem; 
+            padding: 20px 10px; 
+            font-size: 1.1rem; 
             font-weight: 900; 
             border-radius: 16px; 
             border: 4px solid transparent; 
             cursor: pointer; 
             text-transform: uppercase; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4); 
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            -webkit-tap-highlight-color: transparent;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5); 
-            transition: transform 0.1s, filter 0.2s;
-            -webkit-tap-highlight-color: transparent;
         }
-        button:active { transform: scale(0.96); filter: brightness(1.2); }
-        
-        .btn-capture { background: #ffa500; color: #000; border-color: #cc8400; font-size: 1.5rem; }
+
+        /* CLICK EFFECT (Lulubog) */
+        button:active { 
+            transform: scale(0.92); 
+            filter: brightness(1.2); 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.6);
+        }
+
+        /* SUCCESS ANIMATION (Magiging Green) */
+        .success-anim {
+            background-color: #2ecc71 !important;
+            color: #000 !important;
+            border-color: #27ae60 !important;
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(46, 204, 113, 0.6) !important;
+        }
+
+        /* SPECIFIC BUTTON COLORS */
+        .btn-capture { background: #ffa500; color: #000; border-color: #cc8400; font-size: 1.8rem; padding: 30px 10px; flex-grow: 1.5; }
         .btn-retake { background: #e74c3c; color: #fff; border-color: #c0392b; }
-        
-        .print-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .btn-print { background: #3498db; color: #fff; border-color: #2980b9; font-size: 1rem; }
-        
-        .btn-home { background: #27ae60; color: #fff; border-color: #1e8449; }
+        .btn-good { background: #27ae60; color: #fff; border-color: #1e8449; }
+        .btn-another { background: #3498db; color: #fff; border-color: #2980b9; }
+        .btn-new { background: #555; color: #fff; border-color: #333; margin-top: auto; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>Prime Remote</h1>
+        <h1>PRIME REMOTE</h1>
         <div id="status">⏳ CONNECTING...</div>
     </div>
 
-    <div class="grid-container">
-        <button class="btn-capture" onclick="sendCommand('CAPTURE')" style="grid-row: span 2;">📸 CAPTURE</button>
+    <div class="container">
+        <button class="btn-capture" onclick="sendCommand('CAPTURE', this)">📸 CAPTURE</button>
         
-        <button class="btn-retake" onclick="sendCommand('RETAKE')">🔄 RETAKE</button>
-        
-        <div class="print-group">
-            <button class="btn-print" onclick="sendCommand('PRINT_4X6')">🖨️ 4x6</button>
-            <button class="btn-print" onclick="sendCommand('PRINT_5X7')">🖨️ 5x7</button>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+            <button class="btn-retake" onclick="sendCommand('RETAKE', this)">🔄 RETAKE</button>
+            <button class="btn-good" onclick="sendCommand('LOOKS_GOOD', this)">✅ LOOKS GOOD</button>
         </div>
-        
-        <button class="btn-home" onclick="sendCommand('NEW_SESSION')">🏠 NEW SESSION</button>
+
+        <button class="btn-another" onclick="sendCommand('TAKE_ANOTHER', this)">📸 TAKE ANOTHER SHOT</button>
+
+        <button class="btn-new" onclick="sendCommand('NEW_SESSION', this)">🏠 NEW SESSION</button>
     </div>
 
     <script>
-        // 🚨 KUMPLETONG FIREBASE CONFIG (Kasama ang databaseURL) 🚨
+        // 🚨 FIREBASE CONFIGURATION 🚨
         const firebaseConfig = {
             apiKey: "AIzaSyDWwUzJUqYyoIpKdf1MH3mRmoTX9JKlJuE",
             authDomain: "qrcode-2e20e.firebaseapp.com",
             projectId: "qrcode-2e20e",
-            databaseURL: "https://qrcode-2e20e-default-rtdb.firebaseio.com", // <-- ITO ANG PINAKAMAHALAGA PARA SA REALTIME DATABASE
+            databaseURL: "https://qrcode-2e20e-default-rtdb.firebaseio.com",
             storageBucket: "qrcode-2e20e.firebasestorage.app",
             messagingSenderId: "931181134675",
-            appId: "1:931181134675:web:9657787b6ab0b1811857a6",
-            measurementId: "G-530QKPRLPN"
+            appId: "1:931181134675:web:9657787b6ab0b1811857a6"
         };
         
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-
         const statusEl = document.getElementById('status');
 
-        // Bantayan ang connection status ng mobile sa Firebase
+        // BANTAYAN ANG CONNECTION
         db.ref('.info/connected').on('value', function(snap) {
             if (snap.val() === true) {
-                statusEl.innerText = "🟢 READY TO SHOOT";
+                statusEl.innerText = "🟢 SYSTEM SYNCED";
                 statusEl.style.color = "#2ecc71";
+                statusEl.style.boxShadow = "0 0 10px rgba(46, 204, 113, 0.4)";
             } else {
                 statusEl.innerText = "🔴 OFFLINE";
                 statusEl.style.color = "#e74c3c";
+                statusEl.style.boxShadow = "0 0 10px rgba(231, 76, 60, 0.4)";
             }
         });
 
-        // Function para ipadala ang command
-        function sendCommand(action) {
-            // Nagse-set tayo ng data sa node na 'booth_command'
+        // FUNCTION PARA MAG-SEND AT MAG-ANIMATE
+        function sendCommand(action, btnElement) {
             db.ref('booth_command').set({
                 action: action,
-                time: Date.now() // Timestamp para laging naiiba ang data
+                time: Date.now()
             }).then(() => {
-                // VISUAL FEEDBACK: Magiging color Green ang background ng phone ng 1 segundo para alam mong pumasok!
-                document.body.style.backgroundColor = '#143a20';
-                setTimeout(() => document.body.style.backgroundColor = '#13141b', 200);
-                
-                // Vibrate ang phone kung supported (Android)
-                if (navigator.vibrate) navigator.vibrate(50);
-            }).catch((error) => {
-                // KUNG MAY ERROR, LALABAS DITO KUNG BAKIT
-                console.error("Firebase Error:", error);
-                alert("Hindi ma-send ang command!\nError: " + error.message);
+                // 1. Mag-vibrate ng 3 beses (mabilis) para ramdam sa kamay
+                if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+
+                // 2. I-save yung orihinal na text ng button
+                const originalText = btnElement.innerHTML;
+
+                // 3. Ilagay ang SUCCESS Animation
+                btnElement.classList.add('success-anim');
+                btnElement.innerHTML = "✅ SENT!";
+
+                // 4. Ibalik sa normal pagkatapos ng kalahating segundo (500ms)
+                setTimeout(() => {
+                    btnElement.classList.remove('success-anim');
+                    btnElement.innerHTML = originalText;
+                }, 500);
+
+            }).catch((err) => {
+                console.error("Firebase Error:", err);
+                alert("Hindi ma-send ang command!\nCheck internet or Firebase Rules.");
             });
         }
     </script>
