@@ -143,7 +143,7 @@
             padding: 20px;
         }
 
-        /* --- SUCCESS ANIMATION OVERRIDE --- */
+        /* --- ANIMATIONS --- */
         .success-anim {
             background: #2ecc71 !important;
             color: #000 !important;
@@ -151,7 +151,26 @@
             transform: scale(1.05);
             box-shadow: 0 10px 30px rgba(46, 204, 113, 0.5) !important;
             animation: none;
+            pointer-events: none;
         }
+
+        .error-anim { 
+            background: #e74c3c !important; 
+            color: #fff !important; 
+            border-color: #c0392b !important; 
+            transform: scale(1.05); 
+            box-shadow: 0 10px 30px rgba(231, 76, 60, 0.5) !important; 
+            animation: shake 0.4s; 
+            pointer-events: none;
+        }
+        
+        @keyframes shake { 
+            0%, 100% {transform: translateX(0);} 
+            25% {transform: translateX(-10px);} 
+            75% {transform: translateX(10px);} 
+        }
+
+        .loading-anim { opacity: 0.7; pointer-events: none; }
 
         /* --- SUBTLE BRANDING --- */
         .brand-footer {
@@ -217,6 +236,11 @@
         const db = firebase.database();
         const statusEl = document.getElementById('status');
 
+        let currentCommandTime = 0;
+        let ackTimeout = null;
+        let activeBtn = null;
+        let originalBtnText = "";
+
         // BANTAYAN ANG CONNECTION
         db.ref('.info/connected').on('value', function(snap) {
             if (snap.val() === true) {
@@ -232,31 +256,63 @@
             }
         });
 
-        // FUNCTION PARA MAG-SEND AT MAG-ANIMATE
+        // NAKIKINIG ANG REMOTE KUNG SUMAGOT ANG LAPTOP
+        db.ref('booth_ack').on('value', (snapshot) => {
+            const ack = snapshot.val();
+            if (ack && ack.time === currentCommandTime && activeBtn) {
+                // YEHEY! NATANGGAP NG LAPTOP!
+                clearTimeout(ackTimeout); // Patayin ang error timer
+                
+                if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+                activeBtn.classList.remove('loading-anim');
+                activeBtn.classList.add('success-anim');
+                activeBtn.innerHTML = "✅ SUCCESS!";
+
+                setTimeout(() => {
+                    activeBtn.classList.remove('success-anim');
+                    activeBtn.innerHTML = originalBtnText;
+                    activeBtn = null;
+                }, 1000);
+            }
+        });
+
         function sendCommand(action, btnElement) {
+            if (activeBtn) return; // Wag pumindot ng iba habang naghihintay
+
+            activeBtn = btnElement;
+            originalBtnText = btnElement.innerHTML;
+            currentCommandTime = Date.now();
+
+            // LOADING STATE
+            btnElement.classList.add('loading-anim');
+            btnElement.innerHTML = "⏳ SENDING...";
+
             db.ref('booth_command').set({
                 action: action,
-                time: Date.now()
+                time: currentCommandTime
             }).then(() => {
-                // 1. Mag-vibrate ng 3 beses (mabilis) para ramdam sa kamay
-                if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+                
+                // MAGSISIMULA ANG 3.5 SECONDS NA HINTAYAN
+                ackTimeout = setTimeout(() => {
+                    if(activeBtn) {
+                        if (navigator.vibrate) navigator.vibrate([200, 100, 200]); // Mahabang vibrate (error)
+                        activeBtn.classList.remove('loading-anim');
+                        activeBtn.classList.add('error-anim');
+                        activeBtn.innerHTML = "❌ BOOTH NO RESPONSE!";
 
-                // 2. I-save yung orihinal na text ng button
-                const originalText = btnElement.innerHTML;
-
-                // 3. Ilagay ang SUCCESS Animation
-                btnElement.classList.add('success-anim');
-                btnElement.innerHTML = "✅ SENT!";
-
-                // 4. Ibalik sa normal pagkatapos ng kalahating segundo (500ms)
-                setTimeout(() => {
-                    btnElement.classList.remove('success-anim');
-                    btnElement.innerHTML = originalText;
-                }, 500);
+                        setTimeout(() => {
+                            activeBtn.classList.remove('error-anim');
+                            activeBtn.innerHTML = originalBtnText;
+                            activeBtn = null;
+                        }, 2500);
+                    }
+                }, 3500); // 3.5 Seconds Max na paghihintay
 
             }).catch((err) => {
-                console.error("Firebase Error:", err);
-                alert("Hindi ma-send ang command!\nCheck internet or Firebase Rules.");
+                activeBtn.classList.remove('loading-anim');
+                activeBtn.innerHTML = originalBtnText;
+                activeBtn = null;
+                alert("Walang Internet ang Phone mo o may problema sa connection!");
             });
         }
     </script>
