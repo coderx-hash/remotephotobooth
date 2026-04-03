@@ -240,6 +240,7 @@
         let ackTimeout = null;
         let activeBtn = null;
         let originalBtnText = "";
+        let commandFinished = false; // Bagong variable para iwas race condition
 
         // BANTAYAN ANG CONNECTION
         db.ref('.info/connected').on('value', function(snap) {
@@ -259,9 +260,11 @@
         // NAKIKINIG ANG REMOTE KUNG SUMAGOT ANG LAPTOP
         db.ref('booth_ack').on('value', (snapshot) => {
             const ack = snapshot.val();
-            if (ack && ack.time === currentCommandTime && activeBtn) {
-                // YEHEY! NATANGGAP NG LAPTOP!
-                clearTimeout(ackTimeout); // Patayin ang error timer
+            if (ack && ack.time === currentCommandTime && activeBtn && !commandFinished) {
+                
+                // I-tag na tapos na para hindi na mag-trigger ang error timer
+                commandFinished = true;
+                clearTimeout(ackTimeout); 
                 
                 if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
                 activeBtn.classList.remove('loading-anim');
@@ -269,10 +272,12 @@
                 activeBtn.innerHTML = "✅ SUCCESS!";
 
                 setTimeout(() => {
-                    activeBtn.classList.remove('success-anim');
-                    activeBtn.innerHTML = originalBtnText;
-                    activeBtn = null;
-                }, 1000);
+                    if (activeBtn) {
+                        activeBtn.classList.remove('success-anim');
+                        activeBtn.innerHTML = originalBtnText;
+                        activeBtn = null;
+                    }
+                }, 1200);
             }
         });
 
@@ -282,33 +287,39 @@
             activeBtn = btnElement;
             originalBtnText = btnElement.innerHTML;
             currentCommandTime = Date.now();
+            commandFinished = false;
 
             // LOADING STATE
             btnElement.classList.add('loading-anim');
             btnElement.innerHTML = "⏳ SENDING...";
 
-            db.ref('booth_command').set({
-                action: action,
-                time: currentCommandTime
-            }).then(() => {
-                
-                // MAGSISIMULA ANG 3.5 SECONDS NA HINTAYAN
-                ackTimeout = setTimeout(() => {
-                    if(activeBtn) {
-                        if (navigator.vibrate) navigator.vibrate([200, 100, 200]); // Mahabang vibrate (error)
-                        activeBtn.classList.remove('loading-anim');
-                        activeBtn.classList.add('error-anim');
-                        activeBtn.innerHTML = "❌ BOOTH NO RESPONSE!";
+            // START AGAD ANG TIMER PARA WALANG UNUNAHAN
+            ackTimeout = setTimeout(() => {
+                if(activeBtn && !commandFinished) {
+                    commandFinished = true; // Stop waiting
+                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]); 
+                    
+                    activeBtn.classList.remove('loading-anim');
+                    activeBtn.classList.add('error-anim');
+                    activeBtn.innerHTML = "❌ BOOTH NO RESPONSE!";
 
-                        setTimeout(() => {
+                    setTimeout(() => {
+                        if (activeBtn) {
                             activeBtn.classList.remove('error-anim');
                             activeBtn.innerHTML = originalBtnText;
                             activeBtn = null;
-                        }, 2500);
-                    }
-                }, 3500); // 3.5 Seconds Max na paghihintay
+                        }
+                    }, 2500);
+                }
+            }, 4000); // Binigyan ko ng 4 seconds palugit
 
+            // I-SEND SA FIREBASE
+            db.ref('booth_command').set({
+                action: action,
+                time: currentCommandTime
             }).catch((err) => {
+                commandFinished = true;
+                clearTimeout(ackTimeout);
                 activeBtn.classList.remove('loading-anim');
                 activeBtn.innerHTML = originalBtnText;
                 activeBtn = null;
