@@ -3,115 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PRIME DUO - REMOTE CONTROL</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;900&display=swap" rel="stylesheet">
+    <title>Prime Duo Remote</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
     
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
-
+    
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; }
-        body { background: #13141b; color: #fff; display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; padding: 20px; }
-        
-        .header { text-align: center; margin-bottom: 20px; width: 100%; padding-bottom: 15px; border-bottom: 2px solid #333; }
-        .header h1 { font-size: 1.8rem; color: #ffa500; font-weight: 900; }
-        .header p { font-size: 0.8rem; color: #aaa; }
-        .status { font-size: 0.8rem; color: #27ae60; margin-top: 5px; font-weight: bold; }
-
-        .remote-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 400px; flex-grow: 1; align-content: center; }
-        
-        .btn-remote {
-            background: #2a2b32; border: 3px solid #4a3500; border-radius: 20px; color: #fff; font-size: 1.2rem; font-weight: 900;
-            padding: 20px 10px; cursor: pointer; text-transform: uppercase; transition: 0.1s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        body { 
+            background: #13141b; 
+            color: #fff; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: flex-start; 
+            height: 100vh; 
+            padding: 20px;
+            transition: background-color 0.1s ease;
         }
-        .btn-remote:active { transform: scale(0.95); background: #ffa500; color: #000; }
-        .btn-remote .icon { font-size: 2.5rem; }
 
-        .btn-full { grid-column: span 2; background: #ffa500; color: #000; border-color: #fff; font-size: 1.5rem; padding: 30px; }
-        .btn-full:active { background: #fff; }
+        .header { text-align: center; margin-bottom: 20px; width: 100%; padding-top: 10px; border-bottom: 2px solid #333; padding-bottom: 15px;}
+        .header h1 { font-size: 1.5rem; color: #ffa500; font-weight: 900; text-transform: uppercase; letter-spacing: 2px;}
+        #status { font-size: 0.8rem; margin-top: 5px; font-weight: 700; color: #aaa; background: #222; display: inline-block; padding: 5px 15px; border-radius: 20px;}
 
-        .btn-danger { background: #e74c3c; border-color: #c0392b; }
-        .btn-danger:active { background: #c0392b; color: #fff;}
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            width: 100%;
+            max-width: 400px;
+            flex-grow: 1;
+            padding-bottom: 20px;
+        }
+
+        button { 
+            width: 100%; 
+            height: 100%;
+            min-height: 80px;
+            font-size: 1.2rem; 
+            font-weight: 900; 
+            border-radius: 16px; 
+            border: 4px solid transparent; 
+            cursor: pointer; 
+            text-transform: uppercase; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5); 
+            transition: transform 0.1s, filter 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        button:active { transform: scale(0.96); filter: brightness(1.2); }
         
-        .btn-print { background: #3498db; border-color: #2980b9; }
-        .btn-print:active { background: #2980b9; color: #fff;}
-
+        .btn-capture { background: #ffa500; color: #000; border-color: #cc8400; font-size: 1.5rem; }
+        .btn-retake { background: #e74c3c; color: #fff; border-color: #c0392b; }
+        
+        .print-group { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .btn-print { background: #3498db; color: #fff; border-color: #2980b9; font-size: 1rem; }
+        
+        .btn-home { background: #27ae60; color: #fff; border-color: #1e8449; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>DIRECTOR'S REMOTE</h1>
-        <p>Prime Duo Photobooth V7.5</p>
-        <div id="statusText" class="status">🟢 Connected to Cloud</div>
+        <h1>Prime Remote</h1>
+        <div id="status">⏳ CONNECTING...</div>
     </div>
 
-    <div class="remote-grid">
-        <button class="btn-remote btn-full" onclick="sendCommand('START')">
-            <span class="icon">🚀</span> START SESSION
-        </button>
+    <div class="grid-container">
+        <button class="btn-capture" onclick="sendCommand('CAPTURE')" style="grid-row: span 2;">📸 CAPTURE</button>
         
-        <button class="btn-remote btn-full" style="background: #27ae60; border-color: #1e8449; color: white;" onclick="sendCommand('CAPTURE')">
-            <span class="icon">📸</span> CAPTURE
-        </button>
-
-        <button class="btn-remote btn-danger" onclick="sendCommand('RETAKE')">
-            <span class="icon">🔄</span> RETAKE
-        </button>
-
-        <button class="btn-remote" onclick="sendCommand('HOME')">
-            <span class="icon">🏠</span> HOME
-        </button>
-
-        <button class="btn-remote btn-print" onclick="sendCommand('PRINT_4x6')">
-            <span class="icon">🖨️</span> PRINT 4x6
-        </button>
-
-        <button class="btn-remote btn-print" onclick="sendCommand('PRINT_5x7')">
-            <span class="icon">🖨️</span> PRINT 5x7
-        </button>
+        <button class="btn-retake" onclick="sendCommand('RETAKE')">🔄 RETAKE</button>
+        
+        <div class="print-group">
+            <button class="btn-print" onclick="sendCommand('PRINT_4X6')">🖨️ 4x6</button>
+            <button class="btn-print" onclick="sendCommand('PRINT_5X7')">🖨️ 5x7</button>
+        </div>
+        
+        <button class="btn-home" onclick="sendCommand('NEW_SESSION')">🏠 NEW SESSION</button>
     </div>
 
     <script>
-        // 1. FIREBASE CONFIG MO
+        // 🚨 KUMPLETONG FIREBASE CONFIG (Kasama ang databaseURL) 🚨
         const firebaseConfig = {
             apiKey: "AIzaSyDWwUzJUqYyoIpKdf1MH3mRmoTX9JKlJuE",
             authDomain: "qrcode-2e20e.firebaseapp.com",
-            databaseURL: "https://qrcode-2e20e-default-rtdb.asia-southeast1.firebasedatabase.app", // Adjust if needed, usually defaults work
             projectId: "qrcode-2e20e",
+            databaseURL: "https://qrcode-2e20e-default-rtdb.firebaseio.com", // <-- ITO ANG PINAKAMAHALAGA PARA SA REALTIME DATABASE
             storageBucket: "qrcode-2e20e.firebasestorage.app",
             messagingSenderId: "931181134675",
             appId: "1:931181134675:web:9657787b6ab0b1811857a6",
             measurementId: "G-530QKPRLPN"
         };
         
-        // Mag-initialize ng Firebase
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // 2. FUNCTION PARA MAGPADALA NG UTOS
-        function sendCommand(actionName) {
-            const statusText = document.getElementById('statusText');
-            statusText.innerText = "⏳ Sending command...";
-            statusText.style.color = "yellow";
+        const statusEl = document.getElementById('status');
 
-            // Vibration feedback (kung suportado ng phone)
-            if (navigator.vibrate) navigator.vibrate(50);
+        // Bantayan ang connection status ng mobile sa Firebase
+        db.ref('.info/connected').on('value', function(snap) {
+            if (snap.val() === true) {
+                statusEl.innerText = "🟢 READY TO SHOOT";
+                statusEl.style.color = "#2ecc71";
+            } else {
+                statusEl.innerText = "🔴 OFFLINE";
+                statusEl.style.color = "#e74c3c";
+            }
+        });
 
-            // I-save ang command sa Realtime Database
+        // Function para ipadala ang command
+        function sendCommand(action) {
+            // Nagse-set tayo ng data sa node na 'booth_command'
             db.ref('booth_command').set({
-                action: actionName,
-                timestamp: Date.now() // Kailangan natin ng oras para alam ng laptop na bago yung utos
+                action: action,
+                time: Date.now() // Timestamp para laging naiiba ang data
             }).then(() => {
-                statusText.innerText = "🟢 Command Sent: " + actionName;
-                statusText.style.color = "#27ae60";
-                setTimeout(() => { statusText.innerText = "🟢 Ready"; }, 2000);
+                // VISUAL FEEDBACK: Magiging color Green ang background ng phone ng 1 segundo para alam mong pumasok!
+                document.body.style.backgroundColor = '#143a20';
+                setTimeout(() => document.body.style.backgroundColor = '#13141b', 200);
+                
+                // Vibrate ang phone kung supported (Android)
+                if (navigator.vibrate) navigator.vibrate(50);
             }).catch((error) => {
-                statusText.innerText = "🔴 Error: Check Internet";
-                statusText.style.color = "red";
+                // KUNG MAY ERROR, LALABAS DITO KUNG BAKIT
+                console.error("Firebase Error:", error);
+                alert("Hindi ma-send ang command!\nError: " + error.message);
             });
         }
     </script>
