@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PRIME DUO - REMOTE CONTROL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;900&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Montserrat', sans-serif; }
+        body { background: #13141b; color: #fff; display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; padding: 20px; }
+        
+        .header { text-align: center; margin-bottom: 20px; width: 100%; padding-bottom: 15px; border-bottom: 2px solid #333; }
+        .header h1 { font-size: 1.8rem; color: #ffa500; font-weight: 900; }
+        .header p { font-size: 0.8rem; color: #aaa; }
+        .status { font-size: 0.8rem; color: #27ae60; margin-top: 5px; font-weight: bold; }
+
+        .remote-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 400px; flex-grow: 1; align-content: center; }
+        
+        .btn-remote {
+            background: #2a2b32; border: 3px solid #4a3500; border-radius: 20px; color: #fff; font-size: 1.2rem; font-weight: 900;
+            padding: 20px 10px; cursor: pointer; text-transform: uppercase; transition: 0.1s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .btn-remote:active { transform: scale(0.95); background: #ffa500; color: #000; }
+        .btn-remote .icon { font-size: 2.5rem; }
+
+        .btn-full { grid-column: span 2; background: #ffa500; color: #000; border-color: #fff; font-size: 1.5rem; padding: 30px; }
+        .btn-full:active { background: #fff; }
+
+        .btn-danger { background: #e74c3c; border-color: #c0392b; }
+        .btn-danger:active { background: #c0392b; color: #fff;}
+        
+        .btn-print { background: #3498db; border-color: #2980b9; }
+        .btn-print:active { background: #2980b9; color: #fff;}
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>DIRECTOR'S REMOTE</h1>
+        <p>Prime Duo Photobooth V7.5</p>
+        <div id="statusText" class="status">🟢 Connected to Cloud</div>
+    </div>
+
+    <div class="remote-grid">
+        <button class="btn-remote btn-full" onclick="sendCommand('START')">
+            <span class="icon">🚀</span> START SESSION
+        </button>
+        
+        <button class="btn-remote btn-full" style="background: #27ae60; border-color: #1e8449; color: white;" onclick="sendCommand('CAPTURE')">
+            <span class="icon">📸</span> CAPTURE
+        </button>
+
+        <button class="btn-remote btn-danger" onclick="sendCommand('RETAKE')">
+            <span class="icon">🔄</span> RETAKE
+        </button>
+
+        <button class="btn-remote" onclick="sendCommand('HOME')">
+            <span class="icon">🏠</span> HOME
+        </button>
+
+        <button class="btn-remote btn-print" onclick="sendCommand('PRINT_4x6')">
+            <span class="icon">🖨️</span> PRINT 4x6
+        </button>
+
+        <button class="btn-remote btn-print" onclick="sendCommand('PRINT_5x7')">
+            <span class="icon">🖨️</span> PRINT 5x7
+        </button>
+    </div>
+
+    <script>
+        // 1. FIREBASE CONFIG MO
+        const firebaseConfig = {
+            apiKey: "AIzaSyDWwUzJUqYyoIpKdf1MH3mRmoTX9JKlJuE",
+            authDomain: "qrcode-2e20e.firebaseapp.com",
+            databaseURL: "https://qrcode-2e20e-default-rtdb.asia-southeast1.firebasedatabase.app", // Adjust if needed, usually defaults work
+            projectId: "qrcode-2e20e",
+            storageBucket: "qrcode-2e20e.firebasestorage.app",
+            messagingSenderId: "931181134675",
+            appId: "1:931181134675:web:9657787b6ab0b1811857a6",
+            measurementId: "G-530QKPRLPN"
+        };
+        
+        // Mag-initialize ng Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        // 2. FUNCTION PARA MAGPADALA NG UTOS
+        function sendCommand(actionName) {
+            const statusText = document.getElementById('statusText');
+            statusText.innerText = "⏳ Sending command...";
+            statusText.style.color = "yellow";
+
+            // Vibration feedback (kung suportado ng phone)
+            if (navigator.vibrate) navigator.vibrate(50);
+
+            // I-save ang command sa Realtime Database
+            db.ref('booth_command').set({
+                action: actionName,
+                timestamp: Date.now() // Kailangan natin ng oras para alam ng laptop na bago yung utos
+            }).then(() => {
+                statusText.innerText = "🟢 Command Sent: " + actionName;
+                statusText.style.color = "#27ae60";
+                setTimeout(() => { statusText.innerText = "🟢 Ready"; }, 2000);
+            }).catch((error) => {
+                statusText.innerText = "🔴 Error: Check Internet";
+                statusText.style.color = "red";
+            });
+        }
+    </script>
+</body>
+</html>
